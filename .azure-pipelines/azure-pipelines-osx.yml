@@ -2,6 +2,10 @@
 # update the conda-forge.yml and/or the recipe/meta.yaml.
 # -*- mode: yaml -*-
 
+# CI disabled: only the build-xsd workflow should run.
+trigger: none
+pr: none
+
 jobs:
 - job: osx
   dependsOn: fast_finish

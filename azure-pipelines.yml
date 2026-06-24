@@ -1,13 +1,7 @@
-# Don't run build jobs for branches
-trigger:
-  batch: false
-  branches:
-    include:
-      - gh-readonly-queue/*
-
-# Still allow PR builds to run against main
-pr:
-- main
+# CI disabled: only the build-xsd workflow should run.
+# `none` disables both branch (CI) and PR triggers for this pipeline.
+trigger: none
+pr: none
 
 stages:
 - stage: check

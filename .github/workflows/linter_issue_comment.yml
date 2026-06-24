@@ -1,7 +1,9 @@
 name: rerun-staged-recipes-linter
 
+# CI disabled on this branch: only the build-xsd workflow should run.
+# Restricted to manual dispatch so it never triggers automatically.
 on:
-  issue_comment: null
+  workflow_dispatch:
 
 permissions:
   contents: read

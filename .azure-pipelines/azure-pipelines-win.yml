@@ -1,3 +1,7 @@
+# CI disabled: only the build-xsd workflow should run.
+trigger: none
+pr: none
+
 jobs:
 - job: win_64
   dependsOn: fast_finish

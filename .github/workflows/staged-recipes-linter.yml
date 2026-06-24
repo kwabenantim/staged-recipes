@@ -1,14 +1,9 @@
 name: staged-recipes-linter
 
+# CI disabled on this branch: only the build-xsd workflow should run.
+# Restricted to manual dispatch so it never triggers automatically.
 on:
-  merge_group:
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - labeled
-      - unlabeled
+  workflow_dispatch:
 
 # this workflow potentially runs untrusted code via python's `eval`
 # so we can only give it access to a read-only github token
