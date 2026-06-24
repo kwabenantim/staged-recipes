@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - xsd
+      - build-xsd
     paths:
       - "recipes/xsd/**"
       - ".github/workflows/build-xsd.yml"
