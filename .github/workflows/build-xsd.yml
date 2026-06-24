@@ -1,0 +1,87 @@
+name: build-xsd
+
+# Builds the recipes/xsd recipe natively on GitHub-hosted runners for four
+# platforms and saves each resulting conda package as an artifact. This is a
+# standalone build helper, separate from the conda-forge staged-recipes CI.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - xsd
+    paths:
+      - "recipes/xsd/**"
+      - ".github/workflows/build-xsd.yml"
+
+jobs:
+  build-xsd:
+    name: Build xsd (${{ matrix.target }})
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-64
+            runner: ubuntu-24.04 # x86_64
+            c_stdlib: sysroot
+            c_stdlib_version: "2.17"
+          - target: linux-aarch64
+            runner: ubuntu-24.04-arm # Arm64
+            c_stdlib: sysroot
+            c_stdlib_version: "2.17"
+          - target: osx-64
+            runner: macos-13 # Intel
+            c_stdlib: macosx_deployment_target
+            c_stdlib_version: "10.13"
+          - target: osx-arm64
+            runner: macos-14 # Apple Silicon
+            c_stdlib: macosx_deployment_target
+            c_stdlib_version: "11.0"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up micromamba with rattler-build
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: build
+          create-args: >-
+            rattler-build
+          condarc: |
+            channels:
+              - conda-forge
+
+      - name: Write variant config
+        run: |
+          # Emulates the conda-forge global pinning so the recipe's stdlib('c')
+          # jinja resolves for the target platform.
+          {
+            echo "c_stdlib:"
+            echo "  - ${{ matrix.c_stdlib }}"
+            echo "c_stdlib_version:"
+            echo "  - \"${{ matrix.c_stdlib_version }}\""
+            if [ "${{ matrix.c_stdlib }}" = "macosx_deployment_target" ]; then
+              echo "MACOSX_DEPLOYMENT_TARGET:"
+              echo "  - \"${{ matrix.c_stdlib_version }}\""
+            fi
+          } > variants.yaml
+          cat variants.yaml
+
+      - name: Build recipe with rattler-build
+        run: |
+          micromamba run -n build rattler-build build \
+            --recipe recipes/xsd/recipe.yaml \
+            --channel conda-forge \
+            --variant-config variants.yaml \
+            --target-platform ${{ matrix.target }} \
+            --output-dir ./output
+
+      - name: Upload conda package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xsd-${{ matrix.target }}-conda
+          path: output/${{ matrix.target }}/*.conda
+          if-no-files-found: error
+          retention-days: 14
